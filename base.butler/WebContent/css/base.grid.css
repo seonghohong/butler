@@ -1,0 +1,73 @@
+/*! Copyright (c) 2018 Seongho, Hong
+ * SourceName: base.grid
+ * Version: V0.0.1
+ * SnapshotDate: 2018.03.07
+ */
+
+.base-grid{
+}
+ 
+.base-grid table {
+	width: 100%;
+	
+	overflow: hidden;
+	display: block;
+}
+
+.base-grid table thead tr th{
+	position: relative;
+	cursor: default;
+}
+
+.base-grid table thead tr th span{
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+    display: block;
+}
+
+.base-grid table tbody{
+	display: block;
+	
+	overflow-y: scroll; 
+	overflow-x: hidden; 
+}
+
+.base-grid table tbody tr {
+	height: 30px;
+	line-height: 30px;
+}
+
+.base-gridSortWrap{
+}
+
+.base-gridSortWrap .base-gridIcon{
+	
+	width: 16px;
+	margin-left: -16px;
+	
+	top: 0;
+	left: 100%;
+	
+	position: absolute;
+	
+	background-repeat: no-repeat;
+	background-position: center;
+	
+}
+
+.base-gridCell{
+	display: block;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	cursor: default;
+}
+
+.base-gridIconUp{
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAIAAAC0D9CtAAAABnRSTlMA/wD/AP83WBt9AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQUlEQVR42mP8//8/A4mAiYF0MCT1JCYmkqYHogGXNib8NmDVxoRLw/z583Fpw+42iAa4NsJ6kJVi1cY4mnbI0gMAyv0XYf4g8PYAAAAASUVORK5CYII=');
+}
+
+.base-gridIconDown{
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAIAAAC0D9CtAAAABnRSTlMA/wD/AP83WBt9AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASUlEQVR42u2SMQ4AIAjEii+Fl/FUHFyMSIyr8UZoAwlIRHCZxn1ed8zsWNnMmaEslLsNdCsAkm+6oO5+njNDWQCIIqpateT/Gx2rbEeRwEtbUQAAAABJRU5ErkJggg==');
+}

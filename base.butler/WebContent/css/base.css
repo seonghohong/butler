@@ -1,0 +1,71 @@
+/*! Copyright (c) 2018 Seongho, Hong
+ * SourceName: base
+ * Version: 0.0.2 
+ * SnapshotDate: 2018.03.07
+ */
+ 
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-spacing: 0;
+}
+
+.base-hide{
+	display: none;
+}
+
+ 
+.base-disable{
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+  	-moz-opacity: 0.5;
+ 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+ 	-khtml-opacity: 0.5;
+}
+
+.base-loading{
+	
+	width: 100%;
+	height: 100%;
+	
+	position: absolute;
+	left: 0;
+	top: 0;
+	
+	z-index: 10000;
+	
+	background-color: #333;
+	
+	display: none;
+	
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+  	-moz-opacity: 0.5;
+ 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+ 	-khtml-opacity: 0.5;
+}
+
+.base-loadingImage{
+	width: 50px;
+	height: 50px;
+	 
+	position: fixed;
+	top:50%;
+	left:50%;
+	margin-left: -25px;
+	margin-top: -25px;
+	
+	z-index: 10001;
+}
+
+.base-imeModeDisabled {
+	-webkit-ime-mode: disabled;
+	-moz-ime-mode: disabled;
+	-ms-ime-mode: disabled;
+	ime-mode: disabled;
+}
+
+.base-tl{ text-align: left; }
+.base-tc{ text-align: center; }
+.base-tr{ text-align: right; }
