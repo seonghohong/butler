@@ -1,7 +1,7 @@
 /*! Copyright (c) 2018 munchkin team
  * SourceName: base.grid
- * Version: 0.0.2
- * SnapshotDate: 2018.03.09
+ * Version: 0.0.3
+ * SnapshotDate: 2018.03.14
  * 
  * Developer's list
  * - seongho, hong
@@ -81,12 +81,18 @@ var baseGridArray = [];
 				cellHeight : '30px',
 				defaultAlterText : '-',
 				
-				isUpdate : true
+				isUpdate : true,
+				gridDefaultTitle: [{
+					text:'',
+					width: '0%',
+					name: 'gridHiddenSequence',
+					hidden : true
+				}]
+				
 					
 			}
 			
 	        var $option = $.extend({}, $default, $param);
-			
 
 			//유효성 검증
 			if($option.target === undefined){
@@ -133,117 +139,16 @@ var baseGridArray = [];
 			base._gridInitTbody($option);			
 		},
 
-	    /**
-	     * @desc : Grid // 정렬을 올림차순으로 합니다.
-	     * @date : 2018.02.21
-	     * @author: 홍성호
-	     * @support : 
-	     * 	IE 9+
-	     * @param :
-	     * 		명칭			기본값		필수여부	타입			설명
-	     * target								R		string			div element의 ID 전달
-	     * index				0				R		integer			정렬할 td의 번호를 전달 // 0번 부터 시작
-	     * @sample : 
-	     * 	base.gridSortAscending({
-	     * 		target : '#grid1',
-	     * 		index : 0
-	     *  });
-	     * 
-	     * @required :
-	     * 	- jquery-3.2.1.min.js
-	     *  
-	     * @optional :
-	     * @return :
-	     * @update : 
-	     * 	일시		이름	변경내용
-	     * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-	     */
-		gridSortAscending : function($param){
-			
-			var $default = {
-				index : 0
-			}
-	        var $option = $.extend({}, $default, $param);
-
-			//유효성 검증
-			if($option.target === undefined){
-				this.modal('target은(는) 필수항목입니다.');
-				return;
-			}
-
-			var _target = $.grep(baseGridArray, function(array, f){
-				return array.key == $option.target;
-			});
-			
-			if(isArrayInvalid(_target))
-				return;
-			
-			var _gridObject = _target[0].value;
-			_gridObject.ascending($option.index);
-		},
-
-	    /**
-	     * @desc : Grid // 정렬을 내림차순으로 합니다.
-	     * @date : 2018.02.21
-	     * @author: 홍성호
-	     * @support : 
-	     * 	IE 9+
-	     * @param :
-	     * 		명칭			기본값		필수여부	타입			설명
-	     * target								R		string			div element의 ID 전달
-	     * index				0				R		integer			정렬할 td의 번호를 전달 // 0번 부터 시작
-	     * @sample : 
-	     * 	base.gridSortDescending({
-	     * 		target : '#grid1',
-	     * 		index : 0
-	     *  });
-	     * 
-	     * @required :
-	     * 	- jquery-3.2.1.min.js
-	     *  
-	     * @optional :
-	     * @return :
-	     * @update : 
-	     * 	일시		이름	변경내용
-	     * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-	     */
-		gridSortDescending : function($param){
-
-			var $default = {
-				index : 0
-			}
-	        var $option = $.extend({}, $default, $param);
-
-			//유효성 검증
-			if($option.target === undefined){
-				this.modal('target은(는) 필수항목입니다.');
-				return;
-			}
-			
-			var _target = $.grep(baseGridArray, function(array, f){
-				return array.key == $option.target;
-			});
-			
-			if(isArrayInvalid(_target))
-				return;
-			
-			var _gridObject = _target[0].value;
-			_gridObject.descending($option.index);
-		},
-		
 		/**
-		 * @desc : Grid // 정렬을 초기화 합니다.
-		 * @date : 2018.02.21
+		 * @desc : Grid 데이터의 검색조건 등을 변경하여 데이터를 다시 뿌려줍니다.
+		 * @date : 2018.03.07
 		 * @author: 홍성호
 		 * @support : 
 		 * 	IE 9+
 		 * @param :
 		 * 		명칭			기본값		필수여부	타입			설명
-		 * target								R		string			div element의 ID 전달
 		 * @sample : 
-		 * 	base.gridSortDefault({
-		 * 		target : '#grid1'
-		 *  });
+		 * 	gridCellUpdate($option);
 		 * 
 		 * @required :
 		 * 	- jquery-3.2.1.min.js
@@ -252,32 +157,7 @@ var baseGridArray = [];
 		 * @return :
 		 * @update : 
 		 * 	일시		이름	변경내용
-	     * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-	     * 18.03.05		홍성호 	base.gridSortInitialize에서 base.gridSortDefault로 명칭 변경
 		 */
-		gridSortDefault : function($param){
-
-			var $default = {
-			}
-		    var $option = $.extend({}, $default, $param);
-
-			//유효성 검증
-			if($option.target === undefined){
-				this.modal('target은(는) 필수항목입니다.');
-				return;
-			}
-			
-			var _target = $.grep(baseGridArray, function(array, f){
-				return array.key === $option.target;
-			});
-
-			if(isArrayInvalid(_target))
-				return;
-			
-			var _gridObject = _target[0].value;
-			_gridObject.initialize();
-		},
-		
 		gridCellUpdate : function($param){
 			
 			var $default = {
@@ -311,6 +191,14 @@ var baseGridArray = [];
 					$option.titleClass = _gridBeforeOption.titleClass;
 					$option.cellClass = _gridBeforeOption.cellClass;
 					
+					$option.cellHeight = _gridBeforeOption.cellHeight;
+					$option.cellLineHeight = _gridBeforeOption.cellLineHeight;
+
+					if($option.type === 'scroll' || $option.type === 'scrollSort'){
+						$option.recordStartIndex = 0;
+						$option.recordEndIndex = Math.ceil(_gridBeforeOption.recordMaxHeight / _gridBeforeOption.recordCellHeight);
+					}
+
 					base._gridCellUpdate($option);
 					
 					break;
@@ -340,6 +228,7 @@ var baseGridArray = [];
 		 * @return :
 		 * @update : 
 		 * 	일시		이름	변경내용
+		 * 2018.03.09	홍성호	table의 class를 동적으로 추가합니다.
 		 */
 		_gridInitTable : function($option){
 
@@ -380,6 +269,7 @@ var baseGridArray = [];
 		 * @return :
 		 * @update : 
 		 * 	일시		이름	변경내용
+		 * 2018.03.07	홍성호	scrollSort 기능 추가
 		 */
 		_gridInitThead : function($option){
 
@@ -393,6 +283,8 @@ var baseGridArray = [];
 			html += '</thead>';
 			//thead를 집어 넣습니다.
 			$($option.target + ' table').append(html);
+			
+			
 			
 			for ( var i in $option.title) {
 				
@@ -422,10 +314,19 @@ var baseGridArray = [];
 				$($option.target + ' table thead tr').append(html);
 			}
 
+			//grid의 사용성에 도움이 되는 숨김정보에 대해 넣습니다.
+			for ( var i in $option.gridDefaultTitle ){
+
+				html = '';
+				html += '<th class="base-gridHidden" data-name="' + $option.gridDefaultTitle[i].name + '" >';
+				html += '</th>';
+				
+				$($option.target + ' table thead tr').append(html);
+			}
+
 			if(!isUndefined($option.titleClass))
 				$($option.target + ' table thead tr th').addClass($option.titleClass);
 
-			
 			//thead의 필터 속성에 대해 처리합니다.
 			//페이징 방식에 대해서 필터를 처리합니다.
 			if($option.type === 'paging'){
@@ -441,25 +342,26 @@ var baseGridArray = [];
 					$($option.target + ' table thead tr th > div.base-gridSortWrap').addClass('base-hide');
 					
 					if($(this).hasClass('base-gridSortDefault')){
-						base.gridSortAscending({
-							target : _target,
+						base._gridSort($.extend({}, $option, {
+							sortPattern : 'ASCENDING',
 							index : _index
-						});
+						}));
 						$(this).find('div.base-gridIconUp').parent().removeClass('base-hide');
 						$(this).removeClass('base-gridSortDefault');
 						$(this).addClass('base-gridSortAscending');
 					}else if( $(this).hasClass('base-gridSortAscending') ){
-						base.gridSortDescending({
-							target : _target,
+						base._gridSort($.extend({}, $option, {
+							sortPattern : 'DESCENDING',
 							index : _index
-						});
+						}));
 						$(this).find('div.base-gridIconDown').parent().removeClass('base-hide');
 						$(this).removeClass('base-gridSortAscending');
 						$(this).addClass('base-gridSortDescending');
 					}else if( $(this).hasClass('base-gridSortDescending') ){
-						base.gridSortDefault({
-							target : _target
-						});
+						base._gridSort($.extend({}, $option, {
+							sortPattern : 'DEFAULT',
+							index : _index
+						}));
 						$(this).removeClass('base-gridSortDescending');
 						$(this).addClass('base-gridSortDefault');
 					}
@@ -474,6 +376,8 @@ var baseGridArray = [];
 							var _target = $(this).closest('table').attr('data-target');
 							var _recordSortTarget = $(this).attr('data-name');
 							var _index = $(this).attr('data-index');
+							
+							debugger;
 							
 							$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortDefault');
 							$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortAscending');
@@ -639,7 +543,7 @@ var baseGridArray = [];
 			
 			//셀 크기가 PX로 선언되었을 경우
 			if($option.cellHeight.indexOf('px') > -1 ){
-				if($option.type === 'scroll')
+				if($option.type === 'scroll' || $option.type === 'scrollSort')
 					$option.recordEndIndex = Math.ceil( ($($option.target + ' table').height() - $($option.target + ' table thead').height()) / $option.cellHeight.replace(/px/gi,'') );
 			}else{
 				//TODO Grid Cell의 Height 여러개 처리
@@ -651,12 +555,34 @@ var baseGridArray = [];
 			base._gridCellUpdate($option);
 			
 		},
-		
+
+		/**
+		 * @desc : Grid tbody의 스타일을 재설정 합니다.
+		 * @date : 2018.03.09
+		 * @author: 홍성호
+		 * @support : 
+		 * 	IE 9+
+		 * @param :
+		 * 		명칭			기본값		필수여부	타입			설명
+		 * @sample : 
+		 * 	_gridTbodyStyle($option);
+		 * 
+		 * @required :
+		 * 	- jquery-3.2.1.min.js
+		 *  
+		 * @optional :
+		 * @return :
+		 * @update : 
+		 * 	일시		이름	변경내용
+		 */
 		_gridTbodyStyle : function($option){
 
 			if(!isUndefined($option.cellClass))
 				$($option.target + ' table tbody tr td').addClass($option.cellClass);
 			
+			
+			$($option.target + ' table tbody tr').height($option.cellHeight);
+			$($option.target + ' table tbody tr').css('line-height', $option.cellLineHeight);
 			
 			//Thead와 tbody 사이의 border collapse 적용
 			var _tableBorderCollapse = $($option.target + ' table').css('border-collapse');
@@ -731,6 +657,8 @@ var baseGridArray = [];
 		 * @update : 
 		 * 	일시		이름	변경내용
 		 * 2018.03.06	홍성호	cellUpdate 변경으로, tbody 초기 생성 시 slimScroll의 여부를 확인 후 있다면 제거한 뒤 생성한다.
+		 * 2018.03.09	홍성호	tbody의 더미 형식이 totalSize만큼의 tr td를 생성하는 것이 아닌 div의 세로 높이를 크게하여 스크롤이 생성되도록 한다.
+		 * 2018.03.09	홍성호	중복되는 스타일 정의에 대해 _gridTbodyStyle로 함수화
 		 */
 		_gridTbodyTemplate : function($option){
 
@@ -792,6 +720,7 @@ var baseGridArray = [];
 		 * @return :
 		 * @update : 
 		 * 	일시		이름	변경내용
+		 * 2018.03.09	홍성호	더미데이터의 방식 변경으로, 스크롤 상단과 하단에 각각의 필요한 세로 높이만큼 DIV를 활용하여 공간을 채워준다. 
 		 */
 		_gridCellUpdate : function($option){
 			var _data = $.extend({}, $option.data, {
@@ -832,7 +761,7 @@ var baseGridArray = [];
 				//데이터 영역 외 상단에 더미 정보를 넣습니다.
 				if( $option.recordStartIndex !== 0){
 					html = '';
-					html += '<div class="base-gridTopDummy">&nbsp;</div>';
+					html += '<div class="base-gridDummy base-gridTopDummy">&nbsp;</div>';
 
 					$($option.target + ' table tbody').append(html);
 					$($option.target + ' table tbody div.base-gridTopDummy').height( $option.recordCellHeight * $option.recordStartIndex);
@@ -848,16 +777,28 @@ var baseGridArray = [];
 						html += '	</span>';
 						html += '</td>';
 					}
+					for( var j in $option.gridDefaultTitle ){
+						html += '<td class="base-gridHidden" data-name="' + $option.gridDefaultTitle[j].name + '" >';
+						html += '	<span class="base-gridCell">';
+						html += '		&nbsp;';
+						html += '	</span>';
+						html += '</td>';
+					}
+					
 					html += '</tr>';
 					$($option.target + ' table tbody').append(html);
 				}
-				
 				//데이터 영역 외 하단에 더미 정보를 넣습니다.
 				html = '';
-				html += '<div class="base-gridBottomDummy">&nbsp;</div>';
+				html += '<div class="base-gridDummy base-gridBottomDummy">&nbsp;</div>';
 				$($option.target + ' table tbody').append(html);
-				$($option.target + ' table tbody div.base-gridBottomDummy').height( $option.type === 'scroll' ? $option.recordCellHeight * ($option.totalSize - $option.recordEndIndex) : 0);
 				
+				var _gridBottomDummyHeight = 0;
+				if($option.type === 'scroll' || $option.type === 'scrollSort'){
+					_gridBottomDummyHeight = $option.recordCellHeight * ($option.totalSize - $option.recordEndIndex)
+				}
+				
+				$($option.target + ' table tbody div.base-gridBottomDummy').height( _gridBottomDummyHeight );
 				
 				//데이터 바인딩 합니다.
 				for(var i in data.Data){
@@ -870,9 +811,11 @@ var baseGridArray = [];
 								_gridValue = data.Data[i][k];							
 							}
 						}
+						
 						$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').find('span').text(_gridValue);
 						$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').attr('title', _gridValue);
 					}
+					$($option.target + ' table tbody tr').eq(i).find('td[data-name="gridHiddenSequence"]').find('span').text(i);
 				}
 				
 				base._gridTbodyStyle($option);
@@ -887,8 +830,18 @@ var baseGridArray = [];
 					//스크롤을 만들어줍니다.
 					base._gridScroll($option);
 					
-					//그리드를 최종적으로 셋팅합니다.
-					base._gridSetting($option);
+					//Grid ID(key)가 중복되는 GridArray가 있으면 지워줍니다.
+					for(i in baseGridArray){
+						if(baseGridArray[i].key === $option.target){
+							baseGridArray.splice(i, 1);
+							break;
+						}
+					}
+					
+					baseGridArray.push({
+						key : $option.target,
+						value : $option
+					})
 					
 					$option.isUpdate = false;
 				}
@@ -938,18 +891,11 @@ var baseGridArray = [];
 							_trHeight = $($option.target + ' table tbody tr').height();
 						}
 						
-						console.log('data.scrollTop : ' + data.scrollTop);
-						console.log('_scrollHeight : ' + _scrollHeight);
-						console.log('_trHeight : ' + _trHeight);
-						
-						
 						//로딩할 크기
 						//시작값
 						var _trStartIndex = Math.floor(data.scrollTop / _trHeight) ;
 						//종료값
 						var _trEndIndex = Math.ceil((data.scrollTop + _scrollHeight) / _trHeight);
-						console.log('recordStartIndex : ' + _trStartIndex);
-						console.log('recordEndIndex : ' + _trEndIndex);
 						
 						$option.recordStartIndex = _trStartIndex;
 						$option.recordEndIndex = _trEndIndex;
@@ -968,305 +914,44 @@ var baseGridArray = [];
 			}
 			
 		},
-
-		_gridSetting : function($option){
-
+		_gridSort : function($option){
 			
-			var children = $($option.target).find(' table tbody tr');
+			var $_gridRows = $($option.target + ' table tbody tr').get();
 			
-			var attribute = {
-				source : $option.source,
-				type : $option.type,
-				data : $option.data,
-				title : $option.title,
-				height : $option.height,
-				titleClass : $option.titleClass,
-				cellClass : $option.cellClass
-			};
-			
-			if($option.type === 'paging'){
-				$.extend(attribute, {
-					order : function(){
-						var compare = function(a, b) {
-							
-							var sorting = base._gridSortNumber(a, b);
-							
-							if (typeof sorting == "number")
-								return sorting;
-							
-							var change = base._gridSortString(a, b);
-							
-							var a = change.first;
-							var b = change.second;
-							
-							return a.localeCompare(b);
-						};
-						
-						var ascendingOrder = function(a, b) {
-							return compare(a, b);
-						};
-						var descendingOrder = function(a, b) {
-							return compare(b, a);
-						};
-						
-						return {
-							ascending : ascendingOrder,
-							descending : descendingOrder
-						};
-					}(),
-					index : false,
-					array : function() {
-						var array = [];
-						for (var x = 0; x < children.length; x++)
-							array[x] = children[x];
-						return array;
-					}(),
-					defaultArray : null,
-					checkIndex : function(index) {
-						if (index)
-							this.index = parseInt(index, 10);
-						else
-							this.index = 0;
-					},
-					getText : function(child) {
-						if (this.index)
-							child = child.cells[this.index];
-						return base._gridTextClone(child);
-					},
-					setChildren : function() {
-						var array = [];
-						for ( var i in this.array) {
-							array[i] = this.array[i];
-						}
-						
-						$($option.target + ' table tbody').empty();
-						
-						for (var x = 0; x < array.length; x++)
-							$($option.target + ' table tbody').append(array[x]);
-					},
-					ascending : function(index) { // 오름차순 
-						this.checkIndex(index);
-						var _self = this;
-						var order = this.order;
-						var ascending = function(a, b) {
-							var a = _self.getText(a);
-							var b = _self.getText(b);
-							return order.ascending(a, b);
-						};
-						this.array.sort(ascending);
-						this.setChildren();
-					},
-					descending : function(index) { // 내림차순
-						this.checkIndex(index);
-						var _self = this;
-						var order = this.order;
-						var descending = function(a, b) {
-							var a = _self.getText(a);
-							var b = _self.getText(b);
-							return order.descending(a, b);
-						};
-						this.array.sort(descending);
-						this.setChildren();
-					},
-					initialize : function(){
-						this.array = [];
-						for ( var i in this.defaultArray) {
-							this.array[i] = this.defaultArray[i];
-						}
-						this.setChildren();
-					}
-				})
+			$_gridRows.sort(function(a, b){
 				
-				if (!attribute.defaultArray) {
-					attribute.defaultArray = [];
-					for ( var i in attribute.array) {
-						attribute.defaultArray[i] = attribute.array[i];
-					}
+				
+				var _valueA, _valueB;
+				
+				if($option.sortPattern === 'ASCENDING' || $option.sortPattern === 'DESCENDING'){
+					_valueA = $('td', a).eq($option.index).find('span').text();
+					_valueB = $('td', b).eq($option.index).find('span').text();
+					
+				}else if($option.sortPattern === 'DEFAULT'){
+					_valueA = $('td[data-name="gridHiddenSequence"]', a).find('span').text();
+					_valueB = $('td[data-name="gridHiddenSequence"]', b).find('span').text();
+				}else{
+					BIT.modal('to Developer :: 올바른 정렬 방식이 아닙니다.');
+					console.log('유효성 검증 실패 :: to Developer :: 올바른 정렬 방식이 아닙니다.');
+					return;
 				}
-			}
-			
-			
-			//Grid ID(key)가 중복되는 GridArray가 있으면 지워줍니다.
-			for(i in baseGridArray){
-				if(baseGridArray[i].key === $option.target){
-					baseGridArray.splice(i, 1);
-					break;
-				}
-			}
-			
-			//Grid의 정보를 Global 변수에 넣어줍니다.
-			var grid = {
-				key : $option.target,
-				value : attribute
-			}
-			baseGridArray.push(grid);
-			
-			
-		},
-		
-		/**
-		 * @desc : Grid // td의 텍스트 복사를 합니다.
-		 * @date : 2018.02.21
-		 * @author: 홍성호
-		 * @support : 
-		 * 	IE 9+
-		 * @param :
-		 * 		명칭			기본값		필수여부	타입			설명
-		 * tag									R		object			td cell의 object를 전달	
-		 * @sample : 
-		 * 	_gridTextClone(tag);
-		 * 
-		 * @required :
-		 * 	- jquery-3.2.1.min.js
-		 *  
-		 * @optional :
-		 * @return :
-		 * 	object
-		 * @update : 
-		 * 	일시		이름	변경내용
-		 * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-		 */
-		_gridTextClone : function(tag) {
-			var clone = tag.cloneNode(true); // 태그의 복사본 만들기. 
-			var br = clone.getElementsByTagName("br");
-			while (br[0]) {
-				var blank = document.createTextNode(" ");
-				clone.insertBefore(blank, br[0]);
-				clone.removeChild(br[0]);
-			}
-			var isBlock = function(tag) {
-				var display = "";
-				if (window.getComputedStyle)
-					display = window.getComputedStyle(tag, "")["display"];
-				else
-					display = tag.currentStyle["display"];
-				return (display == "block") ? true : false;
-			};
-			var children = clone.getElementsByTagName("*");
-			for (var x = 0; x < children.length; x++) {
-				var child = children[x];
-				if (!("value" in child) && isBlock(child))
-					child.innerHTML = child.innerHTML + " ";
-			}
-			var textContent = ("textContent" in clone) ? clone.textContent : clone.innerText;
-			return textContent;
-		},
 
-		/**
-		 * @desc : Grid // integer 형태를 정렬합니다.
-		 * @date : 2018.02.21
-		 * @author: 홍성호
-		 * @support : 
-		 * 	IE 9+
-		 * @param :
-		 * 		명칭			기본값		필수여부	타입			설명
-		 * first								R		integer			td cell의 비교할 첫번째 integer를 전달
-		 * second								R		integer			td cell의 비교할 두번째 integer를 전달
-		 * @sample : 
-		 * 	_gridSortNumber(first, second);
-		 * 
-		 * @required :
-		 * 	- jquery-3.2.1.min.js
-		 *  
-		 * @optional :
-		 * @return :
-		 * 	object
-		 * @update : 
-		 * 	일시		이름	변경내용
-		 * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-		 */
-		_gridSortNumber : function (first, second){
-			if (typeof first == "number" && typeof second == "number")
-				return first - second;
+				if($.isNumeric(_valueA))
+					_valueA *= 1;
+				
+				if($.isNumeric(_valueB))
+					_valueB *= 1;
+				
+		        if ($option.sortPattern === 'ASCENDING' || $option.sortPattern === 'DEFAULT' ) {
+		            return (_valueA > _valueB) ? 1 : -1;     // A bigger than B, sorting ascending
+		        } else if($option.sortPattern === 'DESCENDING') {
+		            return (_valueA < _valueB) ? 1 : -1;     // B bigger than A, sorting descending
+		        }
+			});
 
-			// 천단위 쉼표와 공백문자만 삭제하기.  
-			var first = (first + "").replace(/[,\s\xA0]+/g, "");
-			var second = (second + "").replace(/[,\s\xA0]+/g, "");
-
-			var numFirst = parseFloat(first) + "";
-			var numSecond = parseFloat(second) + "";
-
-			if (numFirst == "NaN" || numSecond == "NaN" || first != numFirst || second != numSecond)
-				return false;
-
-			return parseFloat(first) - parseFloat(second);
-		},
-		
-
-		/**
-		 * @desc : Grid // string 형태를 정렬합니다.
-		 * @date : 2018.02.21
-		 * @author: 홍성호
-		 * @support : 
-		 * 	IE 9+
-		 * @param :
-		 * 		명칭			기본값		필수여부	타입			설명
-		 * first								R		object			td cell의 비교할 첫번째 object를 전달
-		 * second								R		object			td cell의 비교할 두번째 object를 전달
-		 * @sample : 
-		 * 	_gridSortString(first, second);
-		 * 
-		 * @required :
-		 * 	- jquery-3.2.1.min.js
-		 *  
-		 * @optional :
-		 * @return :
-		 * 	object
-		 * @update : 
-		 * 	일시		이름	변경내용
-		 * 18.02.28		홍성호	base.js에서 base.grid.js로 이동
-		 */
-		_gridSortString : function(first, second){
-
-			// 문자열의 복사본 만들기. 
-			var a = first.toString().replace(/[\s\xA0]+/g, " ");
-			var b = second.toString().replace(/[\s\xA0]+/g, " ");
-
-			var change = {
-				first : a,
-				second : b
-			};
-
-			if (a.search(/\d/) < 0 || b.search(/\d/) < 0 || a.length == 0
-					|| b.length == 0)
-				return change;
-
-			var regExp = /(\d),(\d)/g; // 천단위 쉼표를 찾기 위한 정규식. 
-
-			a = a.replace(regExp, "$1" + "$2");
-			b = b.replace(regExp, "$1" + "$2");
-
-			var unit = 0;
-			var aNb = a + " " + b;
-			var numbers = aNb.match(/\d+/g); // 문자열에 들어있는 숫자 찾기 
-
-			for (var x = 0; x < numbers.length; x++) {
-
-				var length = numbers[x].length;
-				if (unit < length)
-					unit = length;
-			}
-
-			var addZero = function(string) { // 숫자들의 단위 맞추기 
-
-				var match = string.match(/^0+/);
-
-				if (string.length == unit)
-					return (match == null) ? string : match + string;
-
-				var zero = "0";
-
-				for (var x = string.length; x < unit; x++)
-					string = zero + string;
-
-				return (match == null) ? string : match + string;
-			};
-
-			change.first = a.replace(/\d+/g, addZero);
-			change.second = b.replace(/\d+/g, addZero);
-
-			return change;
+			$.each($_gridRows, function(index, row){
+				$($option.target + ' table tbody').append(row);
+		    });
 		}
-		
 	})
 })(jQuery)
