@@ -1,7 +1,7 @@
 /*! Copyright (c) 2018 Seongho, Hong
  * SourceName: base.grid
- * Version: V0.0.1
- * SnapshotDate: 2018.03.07
+ * Version: V0.0.3
+ * SnapshotDate: 2018.03.14
  */
 
 .base-grid{
@@ -12,11 +12,14 @@
 	
 	overflow: hidden;
 	display: block;
+	
+	border-collapse: collapse;
 }
 
 .base-grid table thead tr th{
 	position: relative;
 	cursor: default;
+	background-clip: padding-box;
 }
 
 .base-grid table thead tr th span{
@@ -64,6 +67,14 @@
 	cursor: default;
 }
 
+.base-gridDummy {
+	font-size: 0px;
+}
+
+.base-gridHidden{
+	display: none;
+}
+
 .base-gridIconUp{
 	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAIAAAC0D9CtAAAABnRSTlMA/wD/AP83WBt9AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQUlEQVR42mP8//8/A4mAiYF0MCT1JCYmkqYHogGXNib8NmDVxoRLw/z583Fpw+42iAa4NsJ6kJVi1cY4mnbI0gMAyv0XYf4g8PYAAAAASUVORK5CYII=');
 }
@@ -71,3 +82,4 @@
 .base-gridIconDown{
 	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAIAAAC0D9CtAAAABnRSTlMA/wD/AP83WBt9AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASUlEQVR42u2SMQ4AIAjEii+Fl/FUHFyMSIyr8UZoAwlIRHCZxn1ed8zsWNnMmaEslLsNdCsAkm+6oO5+njNDWQCIIqpateT/Gx2rbEeRwEtbUQAAAABJRU5ErkJggg==');
 }
+

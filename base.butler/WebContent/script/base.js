@@ -1,8 +1,15 @@
-/*! Copyright (c) 2018 Seongho, Hong
+/*! Copyright (c) 2018 munchkin team
  * SourceName: base
- * Version: 0.0.2
- * SnapshotDate: 2018.03.07
+ * Version: 1.0.1
+ * SnapshotDate: 2018.03.14
+ * 
+ * Developer's list
+ * - seongho, hong
+ * - rooky bomb
+ * 
+ * MIT License(http://www.opensource.org/licenses/mit-license.php)
  */
+
 
 var base = {};
 
@@ -324,6 +331,31 @@ function baseClass(){
 	this.getIEVersion = function(){
 		var myNav = navigator.userAgent.toLowerCase();
 		return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
+	}
+	
+	this.getIEVersion2 = function(){
+
+		 var word; 
+
+		 var agent = navigator.userAgent.toLowerCase(); 
+
+		 // IE old version ( IE 10 or Lower ) 
+		 if ( navigator.appName == "Microsoft Internet Explorer" ) word = "msie "; 
+
+		 // IE 11 
+		 else if ( agent.search( "trident" ) > -1 ) word = "trident/.*rv:"; 
+
+		 // Microsoft Edge  
+		 else if ( agent.search( "edge/" ) > -1 ) word = "edge/"; 
+
+		 // 그외, IE가 아니라면 ( If it's not IE or Edge )  
+		 else return -1; 
+
+		 var reg = new RegExp( word + "([0-9]{1,})(\\.{0,}[0-9]{0,1})" ); 
+
+		 if (  reg.exec( agent ) != null  ) return parseFloat( RegExp.$1 + RegExp.$2 ); 
+
+		 return -1; 
 	}
 	
     /**
