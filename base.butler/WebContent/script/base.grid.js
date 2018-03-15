@@ -1,7 +1,7 @@
 /*! Copyright (c) 2018 munchkin team
  * SourceName: base.grid
- * Version: 0.0.3
- * SnapshotDate: 2018.03.14
+ * Version: 1.0.0
+ * SnapshotDate: 2018.03.15
  * 
  * Developer's list
  * - seongho, hong
@@ -9,7 +9,6 @@
  * 
  * MIT License(http://www.opensource.org/licenses/mit-license.php)
  */
-
 
 var baseGridArray = [];
 
@@ -199,6 +198,13 @@ var baseGridArray = [];
 						$option.recordEndIndex = Math.ceil(_gridBeforeOption.recordMaxHeight / _gridBeforeOption.recordCellHeight);
 					}
 
+					//thead 영역을 초기화 합니다.
+					$($option.target + ' table thead tr th').removeClass('base-gridSortDefault');
+					$($option.target + ' table thead tr th').removeClass('base-gridSortAscending');
+					$($option.target + ' table thead tr th').removeClass('base-gridSortDescending');
+					$($option.target + ' table thead tr th').addClass('base-gridSortDefault');
+					$($option.target + ' table thead tr th > div.base-gridSortWrap').addClass('base-hide');
+					
 					base._gridCellUpdate($option);
 					
 					break;
@@ -335,6 +341,18 @@ var baseGridArray = [];
 					var _target = $(this).closest('table').attr('data-target');
 					var _index = $(this).attr('data-index');
 					
+
+					//Global에 저장된 Grid의 정보가 있는지 확인합니다.
+					for(i in baseGridArray){
+						
+						//Grid가 존재한다면,
+						if(baseGridArray[i].key === $option.target){
+							$option.source = baseGridArray[i].value.source;
+							$option.totalSize = baseGridArray[i].value.totalSize;
+							return;
+						}
+					}
+					
 					$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortDefault');
 					$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortAscending');
 					$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortDescending');
@@ -377,7 +395,16 @@ var baseGridArray = [];
 							var _recordSortTarget = $(this).attr('data-name');
 							var _index = $(this).attr('data-index');
 							
-							debugger;
+							//Global에 저장된 Grid의 정보가 있는지 확인합니다.
+							for(i in baseGridArray){
+								
+								//Grid가 존재한다면,
+								if(baseGridArray[i].key === $option.target){
+									$option.source = baseGridArray[i].value.source;
+									$option.totalSize = baseGridArray[i].value.totalSize;
+									break;
+								}
+							}
 							
 							$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortDefault');
 							$($option.target + ' table thead tr th').not(this).removeClass('base-gridSortAscending');
@@ -413,6 +440,11 @@ var baseGridArray = [];
 								console.log('유효성 검증 실패 :: to Developer :: 그리드 정렬 정보가 없습니다.');
 								return;
 							}
+
+							var _scrollTop = $($option.target + ' table tbody').scrollTop();
+							
+							$option.recordStartIndex = Math.floor( _scrollTop / $option.recordCellHeight );
+							$option.recordEndIndex = Math.ceil( (_scrollTop+$option.recordMaxHeight) / $option.recordCellHeight );
 							
 							base._gridCellUpdate($option);
 						});
@@ -748,6 +780,7 @@ var baseGridArray = [];
 					console.log('유효성 검증 실패 :: to Developer :: type은 필수값입니다.');
 					return;
 				}
+				
 
 				if($option.isUpdate){
 					//더미를 그리기 위해 총 데이터의 사이즈를 가져옵니다.
@@ -955,3 +988,4 @@ var baseGridArray = [];
 		}
 	})
 })(jQuery)
+
