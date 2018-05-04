@@ -1,11 +1,10 @@
 /*! Copyright (c) 2018 munchkin team
  * SourceName: base.grid
  * Version: 1.0.0
- * SnapshotDate: 2018.03.15
+ * SnapshotDate: 2018.05.04
  * 
  * Developer's list
  * - seongho, hong
- * - rooky bomb
  * 
  * MIT License(http://www.opensource.org/licenses/mit-license.php)
  */
@@ -86,6 +85,11 @@ var baseGridArray = [];
 					width: '0%',
 					name: 'gridHiddenSequence',
 					hidden : true
+				},{
+					text:'',
+					width: '0%',
+					name: 'gridHiddenData',
+					hidden : true
 				}]
 				
 					
@@ -160,7 +164,18 @@ var baseGridArray = [];
 		gridCellUpdate : function($param){
 			
 			var $default = {
-					isUpdate : true
+				isUpdate : true,
+				gridDefaultTitle: [{
+					text:'',
+					width: '0%',
+					name: 'gridHiddenSequence',
+					hidden : true
+				},{
+					text:'',
+					width: '0%',
+					name: 'gridHiddenData',
+					hidden : true
+				}]
 			}
 		    var $option = $.extend({}, $default, $param);
 
@@ -213,7 +228,55 @@ var baseGridArray = [];
 			}
 			
 		},
+
+		gridRowData : function(selector) {
+			return JSON.parse($(selector).closest('tr').find('td[data-name="gridHiddenData"] span').attr('data-row'));
+		},
+		
+		
+		gridLayerPopupClose : function(selector){
+
+			//유효성 검증
+			if(selector === undefined){
+				this.modal('selector(는) 필수항목입니다.');
+				return;
+			}
 			
+			var _param = base.gridRowData(selector);
+			
+			if(selector && _param)
+				base.layerPopupToParent(selector, _param);
+			
+			$(selector).closest('div[id^=container_]').dialog('close');
+		},
+			
+		gridRowCopy : function(selector, target){
+			
+			$(target + ' table tbody').append($(selector).closest('tr').clone());
+			var _gridClone = $(selector).closest('tr').clone();
+			
+			for(var i in baseGridArray){
+				if( target === baseGridArray[i].key ){
+					for (var j in baseGridArray[i].value.title){
+						if(baseGridArray[i].value.title[j].cellRender){
+							var _rowData = JSON.parse($(_gridClone).find('td[data-name="gridHiddenData"]').find('span').attr('data-row'));
+
+							$(target + ' table tbody tr:last-child').find('td').eq(j).find('span').html( baseGridArray[i].value.title[j].cellRender(_rowData) );
+						}
+					}
+				}
+			}
+			if( $(target + ' table tbody tr').length === 1 ){
+				$(target + ' table tbody tr td').css('border-top', 'none');
+			}
+		},
+		
+
+		gridRowDelete : function(selector){
+			if($(selector).closest('tr').index() === 0)
+				$(selector).closest('tbody').find('tr').eq(1).find('td').css('border-top', 'none');
+			$(selector).closest('tr').remove();
+		},
 
 
 		/**
@@ -760,127 +823,166 @@ var baseGridArray = [];
 				recordEndIndex : $option.recordEndIndex
 			});
 			//데이터 정보를 서버로부터 읽습니다.
-			base.ajax({
-				url : $option.source,
-				data : _data,
-				type : 'POST',
-				isDisplayProgress : false
-			},function(data){
-				//데이터가 유효하지 않을 시
-				if(!data.IsSucceed){
-					//TODO Grid Source Exception 처리
-					base.modal('Grid 목록 로딩 오류');
-					console.log('유효성 검증 실패 :: Grid 목록 로딩 오류');
-					return;
-				}
-
-				//그리드가 스크롤 혹은 페이징 타입이 아닐경우
-				if($option.type !== 'scroll' && $option.type !== 'paging' && $option.type !== 'scrollSort'){
-					base.modal('to Developer :: type은 필수값입니다.');
-					console.log('유효성 검증 실패 :: to Developer :: type은 필수값입니다.');
-					return;
-				}
+			
+			if($option.source){
 				
-
-				if($option.isUpdate){
-					//더미를 그리기 위해 총 데이터의 사이즈를 가져옵니다.
-					$option.totalSize = data.TotalSize;
-					base._gridTbodyTemplate($option);
-				}
-				
-				//기존 데이터를 지워줍니다.
-				$($option.target + ' table tbody').empty();
-
-				//데이터 영역 외 상단에 더미 정보를 넣습니다.
-				if( $option.recordStartIndex !== 0){
-					html = '';
-					html += '<div class="base-gridDummy base-gridTopDummy">&nbsp;</div>';
-
-					$($option.target + ' table tbody').append(html);
-					$($option.target + ' table tbody div.base-gridTopDummy').height( $option.recordCellHeight * $option.recordStartIndex);
-				}
-				//데이터 영역에 더미 정보를 넣습니다.
-				for(var i = 0 ; i < data.Data.length ; i++){
-					html = '';
-					html += '<tr>';
-					for( var j in $option.title){
-						html += '<td data-name="' + $option.title[j].name + '" >';
-						html += '	<span class="base-gridCell">';
-						html += '		&nbsp;';
-						html += '	</span>';
-						html += '</td>';
+				base.ajax({
+					url : $option.source,
+					data : _data,
+					type : 'POST',
+					isDisplayProgress : false
+				},function(data){
+					//데이터가 유효하지 않을 시
+					if(!data.IsSucceed){
+						//TODO Grid Source Exception 처리
+						base.modal('Grid 목록 로딩 오류');
+						console.log('유효성 검증 실패 :: Grid 목록 로딩 오류');
+						return;
 					}
-					for( var j in $option.gridDefaultTitle ){
-						html += '<td class="base-gridHidden" data-name="' + $option.gridDefaultTitle[j].name + '" >';
-						html += '	<span class="base-gridCell">';
-						html += '		&nbsp;';
-						html += '	</span>';
-						html += '</td>';
+
+					//그리드가 스크롤 혹은 페이징 타입이 아닐경우
+					if($option.type !== 'scroll' && $option.type !== 'paging' && $option.type !== 'scrollSort'){
+						base.modal('to Developer :: type은 필수값입니다.');
+						console.log('유효성 검증 실패 :: to Developer :: type은 필수값입니다.');
+						return;
 					}
 					
-					html += '</tr>';
-					$($option.target + ' table tbody').append(html);
-				}
-				//데이터 영역 외 하단에 더미 정보를 넣습니다.
-				html = '';
-				html += '<div class="base-gridDummy base-gridBottomDummy">&nbsp;</div>';
-				$($option.target + ' table tbody').append(html);
-				
-				var _gridBottomDummyHeight = 0;
-				if($option.type === 'scroll' || $option.type === 'scrollSort'){
-					_gridBottomDummyHeight = $option.recordCellHeight * ($option.totalSize - $option.recordEndIndex)
-				}
-				
-				$($option.target + ' table tbody div.base-gridBottomDummy').height( _gridBottomDummyHeight );
-				
-				//데이터 바인딩 합니다.
-				for(var i in data.Data){
-					for(var j in $option.title){
-						var _gridIndex = (data.Data[i].rnum)
-						var _gridKey = $option.title[j].name;
-						var _gridValue = $option.defaultAlterText;
-						for (var k in data.Data[i]) {
-							if (k === _gridKey){
-								_gridValue = data.Data[i][k];							
-							}
+
+					if($option.isUpdate){
+						//더미를 그리기 위해 총 데이터의 사이즈를 가져옵니다.
+						$option.totalSize = data.TotalSize;
+						base._gridTbodyTemplate($option);
+					}
+					
+					//기존 데이터를 지워줍니다.
+					$($option.target + ' table tbody').empty();
+
+					//데이터 영역 외 상단에 더미 정보를 넣습니다.
+					if( $option.recordStartIndex !== 0){
+						html = '';
+						html += '<div class="base-gridDummy base-gridTopDummy">&nbsp;</div>';
+
+						$($option.target + ' table tbody').append(html);
+						$($option.target + ' table tbody div.base-gridTopDummy').height( $option.recordCellHeight * $option.recordStartIndex);
+					}
+					//데이터 영역에 더미 정보를 넣습니다.
+					for(var i = 0 ; i < data.Data.length ; i++){
+						html = '';
+						html += '<tr>';
+						for( var j in $option.title){
+							html += '<td data-name="' + $option.title[j].name + '" >';
+							html += '	<span class="base-gridCell">';
+							html += '		&nbsp;';
+							html += '	</span>';
+							html += '</td>';
 						}
 						
-						$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').find('span').text(_gridValue);
-						$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').attr('title', _gridValue);
+						for( var j in $option.gridDefaultTitle ){
+							html += '<td class="base-gridHidden" data-name="' + $option.gridDefaultTitle[j].name + '" >';
+							html += '	<span class="base-gridCell">';
+							html += '		&nbsp;';
+							html += '	</span>';
+							html += '</td>';
+						}
+						
+						html += '</tr>';
+						$($option.target + ' table tbody').append(html);
 					}
-					$($option.target + ' table tbody tr').eq(i).find('td[data-name="gridHiddenSequence"]').find('span').text(i);
-				}
-				
-				base._gridTbodyStyle($option);
-				
-				
-				//바인딩 된 데이터의 툴팁을 그려줍니다.
-				$( $option.target + ' table tbody').tooltip();
-				
-				
-				if($option.isUpdate){
-
-					//스크롤을 만들어줍니다.
-					base._gridScroll($option);
+					//데이터 영역 외 하단에 더미 정보를 넣습니다.
+					html = '';
+					html += '<div class="base-gridDummy base-gridBottomDummy">&nbsp;</div>';
+					$($option.target + ' table tbody').append(html);
 					
-					//Grid ID(key)가 중복되는 GridArray가 있으면 지워줍니다.
-					for(i in baseGridArray){
-						if(baseGridArray[i].key === $option.target){
-							baseGridArray.splice(i, 1);
-							break;
+					var _gridBottomDummyHeight = 0;
+					if($option.type === 'scroll' || $option.type === 'scrollSort'){
+						_gridBottomDummyHeight = $option.recordCellHeight * ($option.totalSize - $option.recordEndIndex)
+					}
+					
+					$($option.target + ' table tbody div.base-gridBottomDummy').height( _gridBottomDummyHeight );
+					
+					
+					var _gridCellRender = false;
+					
+					//데이터 바인딩 합니다.
+					for(var i in data.Data){
+						for(var j in $option.title){
+							
+							var _gridIndex = (data.Data[i].rnum)
+							var _gridKey = $option.title[j].name;
+							var _gridValue = $option.defaultAlterText;
+							
+							for (var k in data.Data[i]) {
+								if (k === _gridKey){
+									_gridValue = data.Data[i][k];							
+								}
+							}
+							
+							if($option.title[j].cellRender)
+								_gridCellRender = true;
+							else{
+								$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').find('span').text(_gridValue);
+								$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + _gridKey + '"]').attr('title', _gridValue);
+							}
+						}
+						$($option.target + ' table tbody tr').eq(i).find('td[data-name="gridHiddenSequence"]').find('span').text(i);
+						$($option.target + ' table tbody tr').eq(i).find('td[data-name="gridHiddenData"]').find('span').attr('data-row', JSON.stringify(data.Data[i]));
+						
+					}
+					
+					
+					//데이터 render 돌립니다.
+					if(_gridCellRender){
+						for(var i in data.Data){
+							for(var j in $option.title){
+								if( $option.title[j].cellRender ){
+									$($option.target + ' table tbody tr').eq(i).find('td[data-name="' + $option.title[j].name + '"]').find('span').html( $option.title[j].cellRender( data.Data[i] ) );
+								}
+								
+							}
 						}
 					}
 					
-					baseGridArray.push({
-						key : $option.target,
-						value : $option
-					})
+					base._gridTbodyStyle($option);
 					
-					$option.isUpdate = false;
+					//바인딩 된 데이터의 툴팁을 그려줍니다.
+					$( $option.target + ' table tbody').tooltip();
+					
+					base._gridArrayPush($option);
+				});
+			}else{
+				
+				if($($option.target + ' table tbody').length === 0)
+					$($option.target + ' table').append('<tbody></tbody>');
+				
+				//그리드 url이 없어 셀 바인딩이 안될경우 스크롤이 깨지니깐.. 새로 정의해준다
+				if($($option.target + ' table tbody').height() === 0)
+					$($option.target + ' table tbody').height( $option.height.replace(/px/gi,'') - $($option.target + ' table thead').height() );
+				
+				base._gridArrayPush($option);
+			}
+		},
+		
+		_gridArrayPush : function($option){
+			if($option.isUpdate){
+
+				//스크롤을 만들어줍니다.
+				base._gridScroll($option);
+				
+				//Grid ID(key)가 중복되는 GridArray가 있으면 지워줍니다.
+				for(i in baseGridArray){
+					if(baseGridArray[i].key === $option.target){
+						baseGridArray.splice(i, 1);
+						break;
+					}
 				}
 				
-
-			});
+				baseGridArray.push({
+					key : $option.target,
+					value : $option
+				})
+				
+				$option.isUpdate = false;
+			}
 		},
 
 		/**
@@ -988,4 +1090,3 @@ var baseGridArray = [];
 		}
 	})
 })(jQuery)
-
