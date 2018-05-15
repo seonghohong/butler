@@ -1,7 +1,7 @@
 /*! Copyright (c) 2018 munchkin team
  * SourceName: base
- * Version: 1.0.2
- * SnapshotDate: 2018.05.04
+ * Version: 1.0.3
+ * SnapshotDate: 2018.05.15
  * 
  * Developer's list
  * - seongho, hong
@@ -748,6 +748,7 @@ function baseClass(){
      * 		명칭			기본값		필수여부	타입			설명
      * target								R		string			element의 ID 전달
      * allowDash			false			O		boolean			대시를 포함하는지 여부
+     * isChangeFlag							O		boolean			input 요소 상태변화 감지
      * 
      * @sample : 
      * 	inputmaskTel(event);
@@ -758,6 +759,7 @@ function baseClass(){
      * 	boolean
      * @update : 
      * 	일시		이름	변경내용
+     * 18.05.11		장주혁	isChangeFlag
      */
 	this.inputmaskTel = function($param){
 
@@ -775,6 +777,8 @@ function baseClass(){
 		
 		var html = '';
 		html += '<input type="text" class="base-imeModeDisabled" maxlength="' + $option.maxLength + '" name="'+ $($option.target).attr("id") + '">';
+		if($option.isChangeFlag)
+			html += '<input type="hidden" name="'+$($option.target).attr('id')+'Flag" value="N" />';
 		$($option.target).append(html);
 		
 		$($option.target + ' input').keydown(function(e){
@@ -902,8 +906,11 @@ function baseClass(){
      * @param :
      * 		명칭			기본값		필수여부	타입			설명
      * target								R		string			element의 ID 전달
+     * isChangeFlag							O		boolean			input 상태 변화 감지
      * 
      * maxDate				0				O		string,date		기본 클라이언트의 오늘 날짜에 대해 설정함 / ex: 0, none, +1m 등 / http://api.jqueryui.com/datepicker/#option-maxDate
+     * setDate								O		Date			초기 날짜 설정 (Date 객체를 인자로 넘겨줘야합니다)		
+     * 	
      * pair									R		Array			key value 정보 전달
      * - type								R		string			달력 뒤에 오는 checkbox 혹은 text 타입을 정의
      * - key								O		string			input의 value정보
@@ -911,6 +918,7 @@ function baseClass(){
      * - checked							O		boolean			input check의 체크 여부
      * - text								O		string			check시 활성화되는 input text 안의 내용
      * - class								O		string			해당 input text에 씌울 class 적용
+     * - isPairChangeFlag					O		boolean			생성된 pair의 상태 변화 감지
      * 			
      * @sample : 
      * 	imageViewerUpdate({
@@ -938,6 +946,8 @@ function baseClass(){
      * 	일시		이름	변경내용
      * 18.02.14		홍성호	maxDate 추가
      * 18.05.02		김상천	text 추가
+     * 18.05.09		김상천	setDate 추가
+     * 18.05.14		김상천	isChangeFlag, isPairChangeFlag 추가
      */
 	this.inputmaskCalendar = function($param){
 		
@@ -1006,18 +1016,30 @@ function baseClass(){
 		
 		var html = '';
 		html += '<input type="text" name="'+ $($option.target).attr("id") + '" readonly="readonly">';
-
+		
+		if($option.isChangeFlag)
+			html += '<input type="hidden" name="' + $($option.target).attr("id") + 'Flag" value="N" />';
+		
+		
 		if($option.pair) {
 			html += '<p>';
 			for (var i = 0; i < $option.pair.length; i++) {
 				if($option.pair[i].type == 'checkbox') {
 					html += '<label for="' + $option.pair[i].key + '">';
 				}
-				html += '<input type="' + $option.pair[i].type + '" name="'+ $option.pair[i].key + '" value="' + $option.pair[i].value + '" class="' + $option.pair[i].class +'" style="text-align:center;" data-value="' + $option.pair[i].text + '">';
+				html += '<input type="' + $option.pair[i].type + '" name="'+ $option.pair[i].key + '" class="' + $option.pair[i].class +'" style="text-align:center;" data-value="' + $option.pair[i].text;
+				if(!isUndefined($option.pair[i].value))
+					html += '" value="' + $option.pair[i].value;
+					html += '">';
 				if($option.pair[i].type == 'checkbox') {
 					html += $option.pair[i].value;
 					html += '</label>';
 				}
+				if($option.pair[i].isPairChangeFlag)
+					if(isUndefined($option.pair[i].type))
+						this.modal('isPairChangeFlag를 사용하기 위해서는 pair[' + i + ']의 type을 명시해야 합니다');
+					else
+						html += '<input type="hidden" name="' + $option.pair[i].key + 'Flag" value="N" />';
 			}
 			html += '</p>';
 		}
@@ -1025,6 +1047,10 @@ function baseClass(){
 		$($option.target).append(html);
 		
 		$($option.target + ' input[name="' + $($option.target).attr("id") + '"').datepicker($option);
+		
+		// 초기 날짜 설정
+		if(!isUndefined($option.setDate))
+			$('input[name="' + $($option.target).attr("id") + '"]').datepicker('setDate', $option.setDate);
 		
 		// checkbox 옵션 이벤트 처리 data-value
 		$($option.target).find('input:checkbox').on('change', function() {
@@ -1050,14 +1076,20 @@ function baseClass(){
      * 		명칭			기본값		필수여부	타입			설명
      * target								R		string			element의 ID 전달
      * 
-     * maxDate				0				O		string,date		달력의 최대 날짜를 설정함 / ex: 0, none, +1m 등 / http://api.jqueryui.com/datepicker/#option-maxDate
+     * maxDate					0			O		string,date		달력의 최대 날짜를 설정함 / ex: 0, none, +1m 등 / http://api.jqueryui.com/datepicker/#option-maxDate
      * maxDateFrom							O		string,date		달력의 최대 날짜를 설정함 / maxDate 보다 우선순위 / ex: 0, none, +1m 등 / http://api.jqueryui.com/datepicker/#option-maxDate
      * maxDateTo							O		string,date		달력의 최대 날짜를 설정함 / maxDate 보다 우선순위 / ex: 0, none, +1m 등 / http://api.jqueryui.com/datepicker/#option-maxDate
      * 			
+     * fromDate								O		date			from 에 위치할 날짜
+     * toDate								O		date			to 에 위치할 날짜
+     * 
      * prefixFromText						O		string			From 달력 앞에 위치할 span의 text값
      * suffixFromText						O		string			From 달력 뒤에 위치할 span의 text값
      * prefixToText							O		string			To 달력 앞에 위치할 span의 text값
      * suffixToText							O		string			To 달력 뒤에 위치할 span의 text값
+     * 
+     * betweenText							O		string			캘린더 사이에 들어갈 text / input div input
+     * betweenClass							O		string			캘린더 사이에 들어갈 class / input div input
      * 
      * 
      * wrapClass							O		string			div에 넣을 클래스 명칭 / 여러 클래스의 경우 띄어쓰기로 구분 / Class 특성상 제일 오른쪽이 우선순위입니다.			
@@ -1088,6 +1120,7 @@ function baseClass(){
      * @update : 
      * 	일시		이름	변경내용
      * 18.02.26		김상천	isDateOver() , dateOver() 추가 (onchange 바인드)
+     * 18.05.09		홍성호	fromDate, toDate 옵션 추가
      */
 	this.inputmaskCalendarFromTo = function($param){
 		
@@ -1158,6 +1191,21 @@ function baseClass(){
 			html += $option.suffixFromText;
 			html += '</span>'; 
 		}
+		
+		//between text
+		if(isStringValid($option.betweenText) || isStringValid($option.betweenClass)){
+			html += '<div';
+			if(isStringValid($option.betweenClass))
+				html += ' class="' + $option.betweenClass + '"';
+			html += '>';
+			
+			if(isStringValid($option.betweenText)){
+				html += $option.betweenText;
+			}
+			
+			html += '</div>';
+		}
+		
 		//to prefix text
 		if(isStringValid($option.prefixToText)){
 			prefixToUUID = base.getUUID();
@@ -1219,6 +1267,15 @@ function baseClass(){
 			$('input[name="' + $($option.target).attr("id") + 'From"]').datepicker('option', 'maxDate', $option.maxDateFrom);
 		if(!isUndefined($option.maxDateTo))
 			$('input[name="' + $($option.target).attr("id") + 'To"]').datepicker('option', 'maxDate', $option.maxDateTo);
+		
+		
+		if(!isUndefined($option.fromDate))
+			$('input[name="' + $($option.target).attr("id") + 'From"]').datepicker('setDate', $option.fromDate);
+		if(!isUndefined($option.toDate))
+			$('input[name="' + $($option.target).attr("id") + 'To"]').datepicker('setDate', $option.toDate);
+		
+		
+		
 		
 		
 		// 달력 형석 From ~ To 에서 논리적 날짜 오류 (18.02.27 ~ 18.02.01 등) 발생 시 둘의 날짜를 같게 맞춰줍니다
@@ -1318,6 +1375,7 @@ function baseClass(){
      * isButton				false			O		boolean			input 이후 버튼에 대한 표시 여부
      * buttonText							O		string			input 이후 버튼에 대한 text 정보
      * buttonClass							O		string			input 이후 버튼에 대한 class 정보
+     * buttonCallback						O		function		input 이후 버튼에 대한 클릭 콜백
      * 
      * wrapClass							O		string			div에 넣을 클래스 명칭 / 여러 클래스의 경우 띄어쓰기로 구분 / Class 특성상 제일 오른쪽이 우선순위입니다.
      * wrapWidth							O		string			div의 가로 크기 / px 등 단위를 같이 넣어야 합니다.
@@ -1336,6 +1394,8 @@ function baseClass(){
      * maxlength							O		integer			input의 maxlength 정보
      * placeholder							O		string			input의 place holder
      * onlyNumber							O		boolean			input의 내용에 숫자만 필요할 경우 사용합니다.
+     * readonly								O		boolean			input 속성 readonly 활성화
+     * isChangeFlag							O		boolean			input 변화 상태 감지
      * 
      * @sample : 
      *  base.inputText({	
@@ -1346,7 +1406,8 @@ function baseClass(){
      *  	placeholder : '내애애애애애용',
      *  	isButton : true,
      *  	buttonText : '검색',
-     *  	buttonClass : 'btnSearch'
+     *  	buttonClass : 'btnSearch',
+     *  	isChangeFlag : true
      * 	});	
      * 
      * @required : 
@@ -1359,6 +1420,9 @@ function baseClass(){
      * 18.04.27		김상천	옵션 text 추가 (input text 내부 텍스트 입력)
      * 18.04.30		김상천	attr('value', $option.text) 라인 추가 속성으로 value 값이 필요할 때 사용
      * 18.05.04		홍성호	버튼에 대한 내용 추가
+     * 18.05.09		홍성호	버튼 콜백 추가
+     * 18.05.10		김상천	readonly 속성 추가
+     * 18.05.11		장주혁	isChangeFlag 추가
      */
 	this.inputText = function($param){
 		var $default = {
@@ -1394,6 +1458,7 @@ function baseClass(){
 			html += '</span>'; 
 		}
 		
+		
 		if($option.isButton){
 			
 			html += '<button type="button" class="';
@@ -1405,7 +1470,22 @@ function baseClass(){
 			html += '</button>';
 		}
 		
+		if($option.isChangeFlag){
+			html += '<input type="hidden" name="'+$($option.target).attr("id")+'Flag" value="N" />';
+		}
+		
 		$($option.target).append(html);
+		
+		if($option.readonly)
+			$($option.target + ' input').prop("readonly", true);
+
+		//버튼의 callback 처리를 처리합니다.
+		if($option.isButton && $option.buttonCallback){
+			$($option.target + ' button').click(function(){
+				$option.buttonCallback();
+			})
+		}
+
 		
 		// 해당 input:text의 value 속성이 필요하면 밑에 줄 사용 (시리얼, val에는 문제 없음)
 		if(isStringValid($option.text))
@@ -1477,6 +1557,7 @@ function baseClass(){
      * - value								R		string			input의 화면에 보이는 정보
      * - checked							O		boolean			input Check의 체크 여부
      * - textbox							O		string			check시 활성화되는 input text 와 그 name 값
+     * - isPairChangeFlag					O		boolean
      * 
      * wrapClass							O		string			div에 넣을 클래스 명칭 / 여러 클래스의 경우 띄어쓰기로 구분 / Class 특성상 제일 오른쪽이 우선순위입니다.
      * textbox								O		string			checkbox 뒤에 input text 의 name 을 입력하여 붙여줍니다.
@@ -1493,11 +1574,15 @@ function baseClass(){
      * maxlength							O		integer			input text의 maxlength 정보
      * placeholder							O		string			input text의 place holder
      * 
+     * isChangeFlag							O		boolean			checkbox 상태 변화 감지			
+     * 
      * @sample : 
      * base.inputCheck({             	
      * 	'target' : '#inputCheck',
      * 
      *  'isBindLabelText' : false,
+     *  
+     *  'isChangeFlag' : true,
      *  	
      * 	'pair' : [{               
      * 		'key' : '02',       
@@ -1513,7 +1598,8 @@ function baseClass(){
      * 		'iconClass' : '',
      * 		'iconHtml' : '',
      * 		'textClass' : '',
-     * 		'textHtml' : ''
+     * 		'textHtml' : '',
+     * 		'isPairChangeFlag' : true
      * 	}]                        
      * });                           
      * 
@@ -1529,6 +1615,7 @@ function baseClass(){
      * 18.04.24		김상천	각 이벤트 정상 동작 확인
      * 18.05.03		김상천	option selector selectorText 추가 (전체 체크시 textbox의 disable 동작하게 변경해야 함)
      * 18.05.04		홍성호 	isBindLabelText 추가
+     * 18.05.11		장주혁	isChangeFlag, isPairChangeFlag 추가
      */
 	this.inputCheck = function($param){
 
@@ -1607,8 +1694,11 @@ function baseClass(){
 				html += '</span>';
 			}
 			html += '	</label>';
-			if( !isUndefined($option.pair[i].textbox) )
+			if( !isUndefined($option.pair[i].textbox) ){
 				html += '<input type="text" name="' + $option.pair[i].textbox + '" disabled="disabled" />';
+				if($option.pair[i].isPairChangeFlag)
+					html += '<input type="hidden" name="'+ $option.pair[i].textbox+'Flag" value="N" />';
+			}
 			html += '</p>';
 			if( isStringValid($option.pair[i].class) ){
 				html += '</div>';
@@ -1639,6 +1729,11 @@ function baseClass(){
 				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('maxlength', $option.pair[i].maxlength);
 			if(isStringValid($option.pair[i].placeholder))
 				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('placeholder', $option.pair[i].placeholder);
+		}
+		
+		if($option.isChangeFlag){
+			var html = '<input type="hidden" name="'+$($option.target).attr('id')+'Flag" value="N" />';
+			$($option.target).append(html);
 		}
 		
 		if(isStringValid($option.wrapClass))
@@ -1673,6 +1768,7 @@ function baseClass(){
      * - value								R		string			input의 화면에 보이는 정보
      * - checked							O		boolean			input Radio의 체크 여부
      * - textbox							O		string			check시 활성화되는 input text 와 그 name 값
+     * - isPairChangeFlag					O		boolean			check시 활성화되는 input text의 상태변화 감지
      * 
      * wrapClass							O		string			div에 넣을 클래스 명칭 / 여러 클래스의 경우 띄어쓰기로 구분 / Class 특성상 제일 오른쪽이 우선순위입니다.
      * textbox								O		string			radio 버튼 뒤에 input text 의 name 을 입력하여 붙여줍니다.
@@ -1688,12 +1784,17 @@ function baseClass(){
      * 
      * maxlength							O		integer			input text의 maxlength 정보
      * placeholder							O		string			input text의 place holder
+     * isChangeFlag							O		boolean			input 변화 상태 감지
+     * 
+     * 
      * 
      * @sample : 
      * base.inputRadio({             	
      * 	'target' : '#inputRadio',
      *  	
      *  'isBindLabelText' : false,
+     *  
+     *  'isChangeFlag' : true,
      *  
      * 	'pair' : [{               
      * 		'key' : '02',       
@@ -1709,7 +1810,8 @@ function baseClass(){
      * 		'iconClass' : '',
      * 		'iconHtml' : '',
      * 		'textClass' : '',
-     * 		'textHtml' : '' 
+     * 		'textHtml' : '',
+     * 		'isPairChageFlag' : true 
      * 	}]                        
      * });                           
      * 
@@ -1724,6 +1826,7 @@ function baseClass(){
      * 18.04.23		홍성호	class, iconClass, iconHtml, textClass, textHtml 추가
      * 18.04.24		김상천	각 이벤트 정상 동작 확인
      * 18.05.04		홍성호 	isBindLabelText 추가
+     * 18.05.11		장주혁	isChangeFlag, isPairChangeFlag 추가
      */
 	this.inputRadio = function($param){
 
@@ -1749,6 +1852,8 @@ function baseClass(){
 					this.modal('pair[' + i + '].value은(는) 필수항목입니다.');
 				return;
 			}
+			if(isUndefined($option.pair[i].textbox) && $option.pair[i].isPairChangeFlag)
+				this.modal('pair['+i+'].isPairChangeFlag 를 사용하기 위해선 textbox가 필요합니다.');
 		}
 		
 //		console.log($option.pair)
@@ -1782,11 +1887,15 @@ function baseClass(){
 				html += '</span>';
 			}
 			html += '	</label> ';
-			if( !isUndefined($option.pair[i].textbox) )
+			if( !isUndefined($option.pair[i].textbox) ){
 				html += '<input type="text" name="' + $option.pair[i].textbox + '" disabled="disabled" />';
+				if($option.pair[i].isPairChangeFlag)
+					html += '<input type="hidden" name="' + $option.pair[i].textbox + 'Flag" value="N" />';
+			}
 			html += '</p>';
 			if( isStringValid($option.pair[i].class) )
 				html += '</div>';
+			
 			$($option.target).append(html);
 			
 			if($option.pair[i].checked)
@@ -1813,6 +1922,11 @@ function baseClass(){
 				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('maxlength', $option.pair[i].maxlength);
 			if(isStringValid($option.pair[i].placeholder))
 				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('placeholder', $option.pair[i].placeholder);
+		}
+		
+		if($option.isChangeFlag){
+			var html = '<input type="hidden" name="' + $($option.target).attr('id') + 'Flag" value="N" />';
+			$($option.target).append(html);
 		}
 		
 		if(isStringValid($option.wrapClass))
@@ -1942,6 +2056,8 @@ function baseClass(){
 			cancelTitle : '취소'
 		}
 		
+		var _isOk = false;
+		
         var $modalOption = $.extend({}, $default, $param);
 		
 		var id = base.getUUID();
@@ -1978,6 +2094,83 @@ function baseClass(){
 		});
 	}
 	
+	
+
+    /**
+     * @desc : 공통 윈도우 팝업  // 콜백 처리법 : 부모에 callback 함수 기입 / 자식에 window.opener.부모함수 입력하여 처리
+     * @date : 2018.05.10
+     * @author: 홍성호
+     * @support : 
+     * 	IE 10+
+     * @param :
+     * 		명칭			기본값		필수여부	타입			설명
+     * url									R		string			view 가져올 URL
+     * title								R		string			윈도우 팝업 제목
+     * 
+     * width				400				O		integer			모달의 가로 크기 (px 단위)
+     * height				300				O		integer			모달의 세로 크기 (px 단위)
+     * 
+     * @sample 1: 
+     * 
+     * 	base.windowPopup({
+     * 		url : '/democ/popup/call/responseCallPopupView.do',
+     * 		title : '팝업',
+     * 		width : 600,
+     * 		height : 800
+     * 	});
+     * 
+     * @sample 2:
+     * 콜백
+     * 	base.windowPopup({
+     * 		url : '/democ/popup/call/responseCallPopupView.do',
+     * 		title : '팝업',
+     * 		width : 600,
+     * 		height : 800
+     * 	});
+     * 
+     * 부모창 : 
+     * 	function callResponseCallback(args..){
+     * 		console.log(param);
+     * 	}
+     * 자식창 : 
+     * 	window.opener.callResponseCallback(args..);
+     * 	window.close();
+     * 
+     * @required : 
+     * 	- jquery-3.2.1.min.js
+     * @optional :
+     * 
+     * @return :
+     * 	
+     * 
+     * @update : 
+     * 	일시		이름	변경내용
+     */
+	this.windowPopup = function($param){
+
+		var $default = {
+			width : 400,
+			height : 300
+		}
+		
+        var $windowlOption = $.extend({}, $default, $param);
+		
+		//유효성 검증
+		if($windowlOption.url === undefined){
+			this.modal('url은(는) 필수항목입니다.');
+			return;
+		}
+		if(  isStringInvalid($windowlOption.title) ){
+			this.modal('title은(는) 필수항목입니다.');
+			return;
+		}
+		
+		var _option = 'width=' + $windowlOption.width + ', height=' + $windowlOption.height;
+		
+		var _windowPopup = window.open($param.url, $param.title, _option);
+		_windowPopup.focus();
+		
+	}
 
     /**
      * @desc : 공통 레이어 팝업 모달
@@ -1990,6 +2183,9 @@ function baseClass(){
      * url									R		string			view 가져올 URL
      * type									O		string			GET / POST type 지정
      * data									O		Object			POST시 사용 // DATA정보
+     * 
+     * width				400				O		integer			모달의 가로 크기 (px 단위)
+     * height				300				O		integer			모달의 세로 크기 (px 단위)
      * 
      * @sample 1: 
      *  base.layerPopup({
@@ -2019,13 +2215,16 @@ function baseClass(){
      * @update : 
      * 	일시		이름	변경내용
      * 18.04.27		홍성호	콜백 명령어 추가
+     * 18.05.09		홍성호	가로, 세로 크기 추가
      */
 	this.layerPopup = function($param, callback){
 		
 		var $default = {
 			url : '',
 			type : 'GET',
-			data : ''
+			data : '',
+			width : 400,
+			height : 300
 		}
 
         var _layerOption = $.extend({}, $default, $param);
@@ -2035,7 +2234,7 @@ function baseClass(){
 		var _uuid = 'container_' + this.getUUID();
 		html += '<div id="' + _uuid + '"  class="modalContainer" ></div>';
 		$('body').append(html);
-
+		
 		$.ajax({
             url: _layerOption.url,
             type : _layerOption.type,
@@ -2046,7 +2245,9 @@ function baseClass(){
             	$('div#' + _uuid).append(data);
             	
     			$('#' + _uuid).dialog({
-    				modal: true
+    				modal: true,
+    				width : _layerOption.width,
+    				height : _layerOption.height
     			});
     			
 
@@ -2114,7 +2315,7 @@ function baseClass(){
      * param								O		string			부모에게 전달할 데이터를 담는다. json > string화 처리
      * 
      * @sample 1: 
-     *  base.layerPopupClose(this, class);
+     *  base.layerPopupClose(this, {});
      *  
      * @required : 
      * 	- jquery-3.2.1.min.js
@@ -2328,12 +2529,21 @@ function baseClass(){
      * isWhen				false			O		boolean			다중 ajax시 사용하므로, 기본적으로 입력받지 않습니다.
      * 
      * @sample : 
-     *  base.ajax({
-     *  	url : '/component/api/sample/testAjax.do',
-     *  	isDisplayProgress : true
-     *  }, function(data){
-     *  	console.log(data);
-     *  })
+     * 
+     * 	base.when([{
+     * 		url : '/component/api/sample/test2Ajax.do',
+     * 		data : {
+     * 			param2 : 'test222'			
+     * 		}
+     * 	},{
+     * 		url : '/component/api/sample/testAjax.do',
+     * 		data : {
+     * 			param : 'test111'			
+     * 		}
+     * 	}], function(data){
+     * 		console.log(data);
+     * 	});
+     * 
      *  
      * @required : 
      * 	- jquery-3.2.1.min.js
@@ -2571,6 +2781,8 @@ function baseClass(){
      * @return :
      * @update : 
      * 	일시		이름	변경내용
+     * 	일시		이름	변경내용
+     * 18.05.07		김상천	text 미입력시 undefinded 표시되는 것 수정 (if문 추가) 
      */
     this.inputSpan = function($param){
     	var $default = {
@@ -2589,7 +2801,10 @@ function baseClass(){
 		}
 		
 		var html = '';
-		html += '<span data-span="' + $option.dataSpan + '">' + $option.text + '</span>';
+		html += '<span data-span="' + $option.dataSpan + '">';
+		if(!isUndefined($option.text))
+			html += $option.text;
+		html += '</span>';
 		$($option.target).append(html);
     };
     
@@ -2623,6 +2838,7 @@ function baseClass(){
      * backgroundImage						O		string			배경 이미지 / backgroundImage가 우선순위 입니다.             
      * backgroundPosition					O		string			배경 위치               
      * backgroundRepeat						O		string			배경 반복
+     * isChangeFlag							O		boolean			textarea 상태변화 감지
      * 
      * @sample : 
      *  base.inputTextarea({
@@ -2641,7 +2857,9 @@ function baseClass(){
 	 *		'borderWidth' : '4px',
 	 *		'borderColor' : 'skyblue',
 	 *		'borderStyle' : 'solid',
-	 *		'borderRadius' : '10px'
+	 *		'borderRadius' : '10px',
+	 *		
+	 *		'isChangeFlag' : true
 	 *	});
      * 
      * @required : 
@@ -2651,6 +2869,8 @@ function baseClass(){
      * @update : 
      * 	일시		이름	변경내용
      * 18.04.30		김상천	text 옵션 추가 (textarea 내부 텍스트)
+     * 18.05.10		김상천	name 값에 # 들어가는것 수정 ($option.target -> $($option.target).attr("id") )
+     * 18.05.11		장주혁	isChangeFlag 추가
      */
 	this.inputTextarea = function($param) {
 		var $default = {
@@ -2670,10 +2890,13 @@ function baseClass(){
 //			this.modal('height(는) 필수항목입니다.');
 //			return;
 //		}
-		
-		var html = '<textarea rows="' + $option.rows + '" cols="' + $option.cols + '" name="' + $option.target + '">';
+
+		var html = '<textarea rows="' + $option.rows + '" cols="' + $option.cols + '" name="' + $($option.target).attr("id") + '">';
 		if(!isUndefined($option.text))
 			html += $option.text;
+		html += '</textarea>';
+		if($option.isChangeFlag)
+			html += '<input type="hidden" name="'+$($option.target).attr('id')+'Flag" value="N" />';
 		$($option.target).append(html);
 		
 		$($option.target + ' textarea').css('width', $option.width);
@@ -2683,7 +2906,7 @@ function baseClass(){
 		if(isStringValid($option.resize))
 			$($option.target + ' textarea').css('resize', $option.resize);
 		if(isIntegerValid($option.maxlength))
-			$($option.target + ' textarea').attr('maxlength', $option.maxlength);
+			$($option.target + ' textarea').attr('maxlength', $option.maxlength+1);
 		if(isStringValid($option.placeholder))
 			$($option.target + ' textarea').attr('placeholder', $option.placeholder);
 		
@@ -2706,6 +2929,14 @@ function baseClass(){
 			$($option.target + ' textarea').css('background-color', $option.backgroundColor);
 		if($option.backgroundImage !== undefined)
 			$($option.target + ' textarea').css('background-image', $option.backgroundImage);
+		
+		$('#' + $($option.target).attr("id") + ' textarea').on('keyup', function(e) {
+		    if($(this).val().length > $option.maxlength) {
+		        base.modal('입력 제한 [' + $option.maxlength + ']자를 넘을 수 없습니다.');
+		        $(this).val($(this).val().substring(0, $option.maxlength));
+		        e.preventDefault();
+		    }
+		});
 	}
 	
 	/**
@@ -2724,12 +2955,15 @@ function baseClass(){
      * isBindSpanText		false			O		boolean			select option 에 pair의 value를 select tag 하위에 span에 넣을지 여부
      * isBindSpanClass						O		string			select tag 하위의 span class
      * 
+     * isChangeFlag							O		boolean			select 상태 변화 감지
+     * 
      * pair									R		Array			key value 정보 전달 (위에서 아래 순서로 적용됨)
      * - type								R		string			select의 태그(optgroup, option)결정
      * - value								R		string			option의 화면에 보이는 정보
      * - belong								O		string			속하는 그룹의 key 값
      * - selected							O		boolean			input Check의 체크 여부
      * - textbox							O		string			check시 활성화되는 input text 와 그 name 값
+     * - isPairChangeFlag					O		boolean			check시 활성화되는 input text의 상태 변화 감지
      *  
      * maxlength							O		integer			input text의 maxlength 정보
      * placeholder							O		string			input text의 place holder
@@ -2744,6 +2978,7 @@ function baseClass(){
      * 	   'target' : '#selectOption',
      * 	   'selector' : true,
      * 	   isBindSpanText : true,
+     * 	   'isChangeFlag' : true,
      * 	   'pair' : [{
      * 	      'type' : 'option',
      * 	      'key' : 'A',
@@ -2758,7 +2993,8 @@ function baseClass(){
      * 	      'value' : '기타',
      * 	      'textbox' : 'inputTextName',
      * 	      'maxlength' : 50,
-     * 	      selected : true
+     * 	      selected : true,
+     * 		  'isPairChangeFlag' : true
      * 	   }]
      * 	});
      * 
@@ -2772,6 +3008,8 @@ function baseClass(){
      * 18.04.25		김상천	selector (기본 선택 옵션) 과 selectorText (선택 텍스트) 를 설정할 수 있는 옵션 추가
      * 18.04.30		김상천	selector 에 포함된 selected 삭제
      * 18.05.04		홍성호	select 하위 tag에 span text 내용 추가
+     * 18.05.04		김상천	pair 필수 값 해제 (selectbox 가 2개 연달아 올 때, 뒤의 [==선택==] 창만 남기기 위해서)
+     * 18.05.10     장주혁  if(!isUndefined(isBindSpanText)) 조건 수정 -> if(isBindSpanText), 입력 값이 boolean 이기 때문
      */
 	this.inputSelectBox = function($param) {
 		var $default = {
@@ -2789,20 +3027,22 @@ function baseClass(){
 			this.modal('selector(는) 필수항목입니다.');
 			return;
 		}
-		if(isArrayInvalid($option.pair)) {
-			this.modal('pair은(는) 필수항목입니다.');
-			return;
-		}
+//		if(isArrayInvalid($option.pair)) {
+//			this.modal('pair은(는) 필수항목입니다.');
+//			return;
+//		}
 		
-		for (var i = 0; i < $option.pair.length; i++) {
-			if($option.pair[i].type !== 'group' && $option.pair[i].type !== 'option')
-				this.modal('pair[' + i + '].type을(를) 다시 확인하십시오.');
-			if(isStringInvalid($option.pair[i].key) || isStringInvalid($option.pair[i].value)) {
-				if(isStringInvalid($option.pair[i].key))
-					this.modal('pair[' + i + '].key은(는) 필수항목입니다.');
-				if(isStringInvalid($option.pair[i].value))
-					this.modal('pair[' + i + '].value은(는) 필수항목입니다.');
-				return;
+		if(!isUndefined($option.pair)) {
+			for (var i = 0; i < $option.pair.length; i++) {
+				if($option.pair[i].type !== 'group' && $option.pair[i].type !== 'option')
+					this.modal('pair[' + i + '].type을(를) 다시 확인하십시오.');
+				if(isStringInvalid($option.pair[i].key) || isStringInvalid($option.pair[i].value)) {
+					if(isStringInvalid($option.pair[i].key))
+						this.modal('pair[' + i + '].key은(는) 필수항목입니다.');
+					if(isStringInvalid($option.pair[i].value))
+						this.modal('pair[' + i + '].value은(는) 필수항목입니다.');
+					return;
+				}
 			}
 		}
 		
@@ -2815,39 +3055,45 @@ function baseClass(){
 		$($option.target).append(html);
 	
 		// group, option 판단 + 기본 선택
-		for(var i = 0; i < $option.pair.length; i++) {
-			var html = '';
-			if($option.pair[i].type === 'group') {
-				html += '<optgroup label="' + $option.pair[i].key + '">';	
-				$('select[name="' + $($option.target).attr("id") + '"]').append(html);
-			}else {
-				if(!isUndefined($option.pair[i].selected) && $option.pair[i].selected){
-					html += '<option value="' + $option.pair[i].key + '" selected="selected">' + $option.pair[i].value;
-					_selectedValue = $option.pair[i].value;
-				}else
-					html += '<option value="' + $option.pair[i].key + '">' + $option.pair[i].value;
-				
-				if(!isUndefined($option.pair[i].belong))
-					$('select optgroup[label="' + $option.pair[i].belong + '"]').append(html);
-				else
-					$('select[name="' + $($option.target).attr("id") + '"]').append(html);	
-			
-				if(!isUndefined($option.pair[i].textbox)) {
-					if(!isUndefined($option.pair[i].selected))
-						var html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '"/>';
+		if(!isUndefined($option.pair)) {
+			for(var i = 0; i < $option.pair.length; i++) {
+				var html = '';
+				if($option.pair[i].type === 'group') {
+					html += '<optgroup label="' + $option.pair[i].key + '">';	
+					$('select[name="' + $($option.target).attr("id") + '"]').append(html);
+				}else {
+					if(!isUndefined($option.pair[i].selected) && $option.pair[i].selected){
+						html += '<option value="' + $option.pair[i].key + '" selected="selected">' + $option.pair[i].value;
+						_selectedValue = $option.pair[i].value;
+					}else
+						html += '<option value="' + $option.pair[i].key + '">' + $option.pair[i].value;
+					
+					if(!isUndefined($option.pair[i].belong))
+						$('select optgroup[label="' + $option.pair[i].belong + '"]').append(html);
 					else
-						var html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '" disabled="disabled"/>';
-					$('select[name="' + $($option.target).attr("id") + '"]').after(html);	
+						$('select[name="' + $($option.target).attr("id") + '"]').append(html);	
+				
+					if(!isUndefined($option.pair[i].textbox)) {
+						var html = '';
+						if(!isUndefined($option.pair[i].selected))
+							html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '"/>';
+						else
+							html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '" disabled="disabled"/>';
+						if($option.pair[i].isPairChangeFlag)
+							html += '<input type="hidden" name="'+$option.pair[i].textbox+'Flag" value="N" />';
+						
+						$('select[name="' + $($option.target).attr("id") + '"]').after(html);
+					}
+				
+				if(isIntegerValid($option.pair[i].maxlength))
+					$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('maxlength', $option.pair[i].maxlength);
+				if(isStringValid($option.pair[i].placeholder))
+					$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('placeholder', $option.pair[i].placeholder);
 				}
-			
-			if(isIntegerValid($option.pair[i].maxlength))
-				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('maxlength', $option.pair[i].maxlength);
-			if(isStringValid($option.pair[i].placeholder))
-				$($option.target + ' input:text[name="' + $option.pair[i].textbox + '"]').attr('placeholder', $option.pair[i].placeholder);
 			}
 		}
 		
-		if(!isUndefined($option.isBindSpanText)){
+		if($option.isBindSpanText){
 			html = '';
 			
 			html += '<span class="base-selectOptionSpanClass"';
@@ -2859,6 +3105,11 @@ function baseClass(){
 			
 			$($option.target).append(html);
 				
+		}
+		
+		if($option.isChangeFlag){
+			html = '<input type="hidden" name="'+$($option.target).attr('id')+'Flag" value="N" />';
+			$($option.target).append(html);
 		}
 		
 		// 추가되는 textbox 옵션에 대한 이벤트 처리
@@ -2873,7 +3124,6 @@ function baseClass(){
 			
 			//span에 change 될 경우 text 변경
 			if($option.isBindSpanText){
-				
 				var _bindSpanText = '';
 				if(isStringValid($(this).val()))
 					_bindSpanText = $(this).find("option:selected").text();
@@ -2956,6 +3206,72 @@ function baseClass(){
 		}
 
 		return arr;
+	}
+	
+	/**
+     * @desc : 버튼 생성(div)
+     * @date : 2018.05.10
+     * @author: 김상천
+     * @support : 
+     * 	
+     * @param :
+     * 		명칭			기본값		필수여부	타입			설명
+     * target								R		string			element의 ID 전달
+     * buttonText							R		string			버튼의 텍스트 설정
+     * event								O		function		클릭 이벤트 설정
+     * 
+     * prefixImageClass						O		string			버튼 앞에 오는 이미지 설정
+     * suffixImageClass						O		string			버튼 뒤에 오는 이미지 설정
+     * 
+     * @sample : 
+     * base.button({
+	 *		target : '.aaa',
+	 *		event : 'aaaClick',
+	 *		buttonText : '디브클릭',
+	 *		prefixImageClass : 'preImgC',
+	 *		suffixImageClass : 'sufImgC'
+	 *	});
+     * 
+     * @required : 
+     * 	- jquery-3.2.1.min.js
+     * @optional :
+     * @return :
+     * @update : 
+     * 	일시		이름	변경내용
+     */
+	this.button = function($param) {
+		var $default = {
+			isHide : false
+		}
+		var $option = $.extend({}, $default, $param);
+		
+		if($option.target === undefined) {
+			this.modal('target은(는) 필수항목입니다.');
+			return;
+		}
+		if(!$option.buttonText) {
+			this.modal('buttonText(는) 필수항목입니다.');
+			return;
+		}
+		
+		
+		if(isStringValid($option.event))
+			$($option.target).attr('data-event', $option.event);
+			
+			
+		var html = '';
+		if(isStringValid($option.prefixImageClass))
+			html += '<div class="' + $option.prefixImageClass + '"></div>';
+		if(isStringValid($option.buttonText))
+			html += '<span data-span="' + $($option.target).attr("class") + '">' + $option.buttonText + '</span>';
+		if(isStringValid($option.suffixImageClass))
+			html += '<div class="' + $option.suffixImageClass + '"></div>';
+		$($option.target).append(html);	
+		
+		
+		if($option.isHide)
+			$($option.target).hide();
+		
 	}
 }
 
@@ -3206,6 +3522,8 @@ function isArrayInvalid(target){
  * 	일시		이름	변경내용
  */
 function getTelephoneRegularExpression(str) {
+	if(str == "" || isUndefined(str) || str === null)
+		return;
 	/* 지역번호 02일 경우 10자리 이상입력 못하도록 제어함. */
 	var RegNotNum = /[^0-9]/g;
 	
@@ -3305,7 +3623,7 @@ function getTelephoneRegularExpression(str) {
  * 	일시		이름	변경내용
  * 18.04.30		김상천	기존 14자만 가능하던 날짜를 8자 받으면(년,월,일) 출력 가능하게 함
  */
-function getDateFormatExpression(date, dateFormat) {
+function getDateFormatExpression(date, dateFormat, expression) {
 	var getDate = "";
 	
 	if(date.length !== 14 && date.length !== 8) {
@@ -3367,6 +3685,44 @@ function getDateFormatExpression(date, dateFormat) {
 	}
 		
 	return getDate;
+}
+
+
+/**
+ * @desc : 현재 날짜와 시각을 반환합니다. (20180301103025 형식리턴)
+ * @date : 2018.05.10
+ * @author: 김상천
+ * @support : 
+ * 	IE 8+
+ * @param :
+ * 		명칭			기본값		필수여부	타입			설명
+ * @sample : 
+ * 	getTodayDateTime();
+ * 
+ * @required : 
+ * @optional :
+ * @return :
+ * 	string / 20180301103025  (14자리)
+ * @update : 
+ * 	일시		이름	변경내용
+ */
+function getTodayDateTime() {
+	var d = new Date();
+	var _today = leadingZeros(d.getFullYear(), 4) + leadingZeros(d.getMonth() + 1, 2) + leadingZeros(d.getDate(), 2)
+				+ leadingZeros(d.getHours(), 2) + leadingZeros(d.getMinutes(), 2) + leadingZeros(d.getSeconds(), 2);
+	
+	function leadingZeros(n, digits) {
+		 // 1 -> 01 과 같이 변경하기
+		 var zero = '';
+		 n = n.toString();
+
+		 if (n.length < digits) {
+			  for (i = 0; i < digits - n.length; i++)
+			  zero += '0';
+		 }
+		 return zero + n;
+	}
+	return _today;
 }
 
 
