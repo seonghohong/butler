@@ -1,7 +1,7 @@
 /*! Copyright (c) 2018 munchkin team
  * SourceName: base.grid
- * Version: 1.0.0
- * SnapshotDate: 2018.05.04
+ * Version: 1.0.1
+ * SnapshotDate: 2018.05.15
  * 
  * Developer's list
  * - seongho, hong
@@ -31,7 +31,9 @@ var baseGridArray = [];
 	     * title
 	     * - text								R		string			바인딩 될 데이터의 제목 정보
 	     * - name								R		string			바인딩 될 데이터의 key / DB의 column과 매치되면 좋겠지요.
-	     * - thClass							O		string
+	     * - thClass							O		string			thead tr th에 적용될 class
+	     * - tdClass							O		string			tbody tr td에 적용될 class
+	     * - cellClass							O		string			tobdy tr td span에 적용될 class
 	     * - width				auto			O		string			Cell의 가로 크기 / px 등 단위 표기 필요
 	     * - titleAlign			center			O		string			thead tr th의 정렬 정보
 	     * - cellAlign							O		string			tbody tr td의 정렬 정보
@@ -77,6 +79,7 @@ var baseGridArray = [];
 				titleHeight : '30px',
 				
 				cellHeight : '30px',
+				cellLineHeight : '30px',
 				defaultAlterText : '-',
 				
 				isUpdate : true,
@@ -246,7 +249,6 @@ var baseGridArray = [];
 			
 			if(selector && _param)
 				base.layerPopupToParent(selector, _param);
-			
 			$(selector).closest('div[id^=container_]').dialog('close');
 		},
 			
@@ -465,6 +467,7 @@ var baseGridArray = [];
 								if(baseGridArray[i].key === $option.target){
 									$option.source = baseGridArray[i].value.source;
 									$option.totalSize = baseGridArray[i].value.totalSize;
+									$option.data = baseGridArray[i].value.data;
 									break;
 								}
 							}
@@ -681,11 +684,17 @@ var baseGridArray = [];
 			
 			//Thead와 tbody 사이의 border collapse 적용
 			var _tableBorderCollapse = $($option.target + ' table').css('border-collapse');
+			
+			
 			for ( var i in $option.title) {
 				//thead의 tr:last의 border-bottom-width 확인
 				var _borderBottomWidth = $($option.target + ' table thead tr:last th').eq(i).css('border-bottom-width').replace(/px/gi, '');
 				//tbody의 tr:first의 border-top-width 확인
-				var _borderTopWidth = $($option.target + ' table tbody tr:first td').eq(i).css('border-top-width').replace(/px/gi, '');
+				console.log();
+				if($($option.target + ' table tbody tr:first td').length == 0)
+					var _borderTopWidth = 0;
+				else
+					var _borderTopWidth = $($option.target + ' table tbody tr:first td').eq(i).css('border-top-width').replace(/px/gi, '');
 				
 				//둘다 존재한다면, thead tr:last border-bottom-width를 삭제합니다. 
 				if(_borderBottomWidth > 0 && _borderTopWidth > 0 && _tableBorderCollapse === 'collapse'){
@@ -700,12 +709,27 @@ var baseGridArray = [];
 					if(isStringValid($option.title[j].cellAlign))
 						$($option.target + ' table tbody tr').eq(i).find('td').eq(j).css('text-align', $option.title[j].cellAlign);
 
+			//td style을 설정합니다 ( table tbody tr td )
+			for ( var i = 0 ; i < $option.totalSize ; i++) 
+				for ( var j in $option.title) 
+					if(isStringValid($option.title[j].tdClass))
+						$($option.target + ' table tbody tr').eq(i).find('td').eq(j).addClass($option.title[j].tdClass);
+			
+			//td style을 설정합니다 ( table tbody tr td )
+			for ( var i = 0 ; i < $option.totalSize ; i++) 
+				for ( var j in $option.title) 
+					if(isStringValid($option.title[j].cellClass))
+						$($option.target + ' table tbody tr').eq(i).find('td').eq(j).find('span').addClass($option.title[j].cellClass);
+
 			
 			//tbody의 스타일을 정의합니다.
 			//tbody의 세로 높이를 설정합니다.
+			
 			if(isStringValid($option.height) || $option.isUpdate){
 				var _tbodyHeight = $($option.target + ' table').height() - $($option.target + ' table thead').height();
 
+				
+				
 				var _browserVersion = base.getIEVersion2();
 				var _trHeight = 0;
 				if(_browserVersion === 11){
@@ -713,13 +737,14 @@ var baseGridArray = [];
 				}else{
 					_trHeight = $($option.target + ' table tbody tr').height();
 				}
-
+				if(_trHeight === 0 || isUndefined(_trHeight))
+					_trHeight = $option.cellLineHeight.replace(/px/gi, '');
+				
 				$option.recordStartIndex = 0;
 				$option.recordEndIndex = Math.ceil(_tbodyHeight / _trHeight);
 				$option.recordScrollTop = 0;
 				$option.recordCellHeight = _trHeight;
 				$option.recordMaxHeight = _tbodyHeight;
-				
 				$($option.target + ' table tbody').height(_tbodyHeight);
 			}
 			//tbody의 가로 길이를 설정합니다.
@@ -942,6 +967,13 @@ var baseGridArray = [];
 						}
 					}
 					
+					if($option.rowClickCallback){
+						$($option.target + ' table tbody tr td').click(function(){
+							var _rowData = $(this).closest('tr').find('td[data-name="gridHiddenData"]').find('span').attr('data-row');
+							$option.rowClickCallback(_rowData);
+						});
+					} 
+					
 					base._gridTbodyStyle($option);
 					
 					//바인딩 된 데이터의 툴팁을 그려줍니다.
@@ -1050,7 +1082,6 @@ var baseGridArray = [];
 			
 		},
 		_gridSort : function($option){
-			
 			var $_gridRows = $($option.target + ' table tbody tr').get();
 			
 			$_gridRows.sort(function(a, b){
