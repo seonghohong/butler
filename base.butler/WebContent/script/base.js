@@ -2998,6 +2998,31 @@ function baseClass(){
      * 	   }]
      * 	});
      * 
+     * @sample : dataBind 방식
+     * $option = {
+     * 'target' : '#selectOption',
+     *     'selector' : true,
+     *     isBindSpanText : true,
+     *     'isChangeFlag' : true,
+     *  'dataKey' : 'code',
+     * 'dataValue' : 'codeName',
+     *     'pair' : [{
+     *    "code": "26",
+     *    "codeName": "Code1",
+     *    "codeDescription": null,
+     *    "currentAmount": null,
+     *    "totalAmount": null,
+     *    "telephoneNumber": null
+     * },{
+     *    "code": "27",
+     *    "codeName": "Code2",
+     *    "codeDescription": null,
+     *    "currentAmount": null,
+     *    "totalAmount": null,
+     *    "telephoneNumber": null
+     * }]
+     * };
+     * base.selectTest($option);
      * @required : 
      * 	- jquery-3.2.1.min.js
      * @optional :
@@ -3010,12 +3035,16 @@ function baseClass(){
      * 18.05.04		홍성호	select 하위 tag에 span text 내용 추가
      * 18.05.04		김상천	pair 필수 값 해제 (selectbox 가 2개 연달아 올 때, 뒤의 [==선택==] 창만 남기기 위해서)
      * 18.05.10     장주혁  if(!isUndefined(isBindSpanText)) 조건 수정 -> if(isBindSpanText), 입력 값이 boolean 이기 때문
+     * 18.05.18         백승혁     pair DataBind 구현 및 예제 추가 / dataKey,DataValue,DataType 디폴트 추가 / TODO - Type 재정의 필요
      */
 	this.inputSelectBox = function($param) {
 		var $default = {
 			selector : false,
 			selectorText : '==선택==',
-			isBindSpanText : false
+			isBindSpanText : false,
+			dataType : 'type',
+			dataKey : 'key',
+			dataValue : 'value'
 		}
 		var $option = $.extend({}, $default, $param);
 		
@@ -3034,13 +3063,13 @@ function baseClass(){
 		
 		if(!isUndefined($option.pair)) {
 			for (var i = 0; i < $option.pair.length; i++) {
-				if($option.pair[i].type !== 'group' && $option.pair[i].type !== 'option')
-					this.modal('pair[' + i + '].type을(를) 다시 확인하십시오.');
-				if(isStringInvalid($option.pair[i].key) || isStringInvalid($option.pair[i].value)) {
-					if(isStringInvalid($option.pair[i].key))
-						this.modal('pair[' + i + '].key은(는) 필수항목입니다.');
-					if(isStringInvalid($option.pair[i].value))
-						this.modal('pair[' + i + '].value은(는) 필수항목입니다.');
+				//if($option.pair[i][$option.dataType] !== 'group' && $option.pair[i][$option.dataType] !== 'option')
+				//	this.modal('pair[' + i + '].type을(를) 다시 확인하십시오.');
+				if(isStringInvalid($option.pair[i][$option.dataKey]) || isStringInvalid($option.pair[i][$option.dataValue])) {
+					if(isStringInvalid($option.pair[i][$option.dataKey]))
+						this.modal('pair[' + i + ']'+[$option.dataKey]+'은(는) 필수항목입니다.');
+					if(isStringInvalid($option.pair[i][dataValue]))
+						this.modal('pair[' + i + ']'+[$option.dataValue]+'은(는) 필수항목입니다.');
 					return;
 				}
 			}
@@ -3053,20 +3082,20 @@ function baseClass(){
 		if($option.selector === true)
 			html += '<option value="">' + $option.selectorText;
 		$($option.target).append(html);
-	
+		
 		// group, option 판단 + 기본 선택
 		if(!isUndefined($option.pair)) {
 			for(var i = 0; i < $option.pair.length; i++) {
 				var html = '';
-				if($option.pair[i].type === 'group') {
-					html += '<optgroup label="' + $option.pair[i].key + '">';	
+				if($option.pair[i][$option.dataType] === 'group') {
+					html += '<optgroup label="' + $option.pair[i][dataKey] + '">';	
 					$('select[name="' + $($option.target).attr("id") + '"]').append(html);
 				}else {
 					if(!isUndefined($option.pair[i].selected) && $option.pair[i].selected){
-						html += '<option value="' + $option.pair[i].key + '" selected="selected">' + $option.pair[i].value;
-						_selectedValue = $option.pair[i].value;
+						html += '<option value="' + $option.pair[i][$option.dataKey] + '" selected="selected">' + $option.pair[i][$option.dataValue];
+						_selectedValue = $option.pair[i][$option.dataValue];
 					}else
-						html += '<option value="' + $option.pair[i].key + '">' + $option.pair[i].value;
+						html += '<option value="' + $option.pair[i][$option.dataKey] + '">' + $option.pair[i][$option.dataValue];
 					
 					if(!isUndefined($option.pair[i].belong))
 						$('select optgroup[label="' + $option.pair[i].belong + '"]').append(html);
@@ -3076,9 +3105,9 @@ function baseClass(){
 					if(!isUndefined($option.pair[i].textbox)) {
 						var html = '';
 						if(!isUndefined($option.pair[i].selected))
-							html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '"/>';
+							html = '<input type="text" data-pair="' + $option.pair[i][$option.dataKey] + '" name="' + $option.pair[i].textbox + '"/>';
 						else
-							html = '<input type="text" data-pair="' + $option.pair[i].key + '" name="' + $option.pair[i].textbox + '" disabled="disabled"/>';
+							html = '<input type="text" data-pair="' + $option.pair[i][$option.dataKey] + '" name="' + $option.pair[i].textbox + '" disabled="disabled"/>';
 						if($option.pair[i].isPairChangeFlag)
 							html += '<input type="hidden" name="'+$option.pair[i].textbox+'Flag" value="N" />';
 						
